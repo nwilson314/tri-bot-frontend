@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	type Message = {
 	  content: string;
 	  role: 'user' | 'assistant';
@@ -6,12 +7,15 @@
   
 	let message = '';
 	let messages: Message[] = [];
+	let endOfMessages: HTMLDivElement;
   
 	async function sendMessage() {
 	  if (message.trim() === '') return;
   
 	  // Add the user's message to the messages list
 	  messages = [...messages, { content: message, role: 'user' }];
+	  await tick();
+	  endOfMessages.scrollIntoView({ behavior: 'smooth' });
   
 	  try {
 		const res = await fetch('/api/chat', {
@@ -45,7 +49,17 @@
   
 	  // Clear the input field after sending the message
 	  message = '';
+	  // Scroll to the bottom of the chat box
+	  // chatContainer.scrollTop = chatContainer.scrollHeight;
+	  await tick();
+	  endOfMessages.scrollIntoView({ behavior: 'smooth' });
 	}
+	const handleKeyPress = async (event: KeyboardEvent) => {
+		if (event.key === 'Enter' && !event.shiftKey) {
+			event.preventDefault();
+			await sendMessage();
+		}
+	};
   </script>
   
   <main>
@@ -56,9 +70,19 @@
 		  <strong>{role === 'user' ? 'You' : 'Assistant'}:</strong> {content}
 		</div>
 	  {/each}
+	  <div bind:this={endOfMessages}></div>
 	</div>
-	<input type="text" bind:value={message} placeholder="Type your message..." />
-	<button on:click={sendMessage}>Send</button>
+	<!-- <input type="text" bind:value={message} placeholder="Type your message..." />
+	<button on:click={sendMessage} on:keydown={handleKeyPress}>Send</button> -->
+	<form on:submit|preventDefault={sendMessage}>
+		<input
+		  type="text"
+		  bind:value={message}
+		  placeholder="Type your message..."
+		  on:keydown={handleKeyPress}
+		/>
+		<button type="button" on:click={sendMessage}>Send</button>
+	  </form>
   </main>
   
   <style>
@@ -106,9 +130,25 @@
 	  max-width: 600px;
 	  color: #000;
 	}
+
+	form {
+		width: 100%;
+		max-width: 600px;
+		display: flex;
+		align-items: center;
+	}
   
 	button {
-	  padding: 0.5rem 1rem;
-	}
+		padding: 0.5rem 1rem;
+		margin-bottom: 1rem;
+		border: none;
+		border-radius: 4px;
+		background-color: #6d685b;
+		color: white;
+		cursor: pointer;
+   }
+   button:hover {
+    	background-color: #85741d;
+  	}
   </style>
   
