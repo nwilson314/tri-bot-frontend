@@ -63,7 +63,7 @@
   </script>
   
   <main>
-	<h1>Chat with LLM</h1>
+	<h1>Chat with Tri-Bot</h1>
 	<div class="chat-container">
 	  {#each messages as { content, role }}
 		<div class:agent-message={role === 'assistant'} class:user-message={role === 'user'}>
